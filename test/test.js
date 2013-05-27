@@ -71,4 +71,50 @@ describe('stream head extractor test', function() {
 
     assertBuffersSeparatedCorrectly(testBuffers, '::::', callback)
   })
+
+  it('test beginning separate', function(callback) {
+    var testBuffers = [
+      '::',
+      'hello ',
+      'world'
+    ]
+
+    var readStream = streamConvert.buffersToStream(testBuffers)
+
+    extractAsciiStreamHead({ separator: '::' }, readStream,
+      function(err, streamHead, restStream) {
+        if(err) throw err
+
+        streamHead.should.equal('')
+        streamConvert.streamToText(restStream, function(err, text) {
+          if(err) throw err
+
+          text.should.equal('hello world')
+          callback()
+        })
+      })
+  })
+
+  it('test beginning separate', function(callback) {
+    var testBuffers = [
+      ':',
+      ':hello ',
+      'world'
+    ]
+
+    var readStream = streamConvert.buffersToStream(testBuffers)
+
+    extractAsciiStreamHead({ separator: '::' }, readStream,
+      function(err, streamHead, restStream) {
+        if(err) throw err
+
+        streamHead.should.equal('')
+        streamConvert.streamToText(restStream, function(err, text) {
+          if(err) throw err
+
+          text.should.equal('hello world')
+          callback()
+        })
+      })
+  })
 })
