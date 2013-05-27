@@ -6,7 +6,7 @@
   },
   "name": "quiver-stream-head-extractor",
   "desription": "Extract the header part content of a stream based on given separator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/quiverjs/stream-head-extractor",
   "repository": {
     "url": "git@github.com:quiverjs/stream-head-extractor.git"

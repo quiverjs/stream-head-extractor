@@ -3,13 +3,13 @@
 
 var should = require('should')
 var streamConvert = require('quiver-stream-convert')
-var extractAsciiStreamHead = require('../lib/stream-head-extractor').extractAsciiStreamHead
+var headExtractor = require('../lib/stream-head-extractor')
 
 
 var assertBuffersSeparatedCorrectly = function(buffers, separator, callback) {
   var readStream = streamConvert.buffersToStream(buffers)
 
-  extractAsciiStreamHead({ separator: separator }, readStream,
+  headExtractor.extractStreamHeadWithSeparator({ separator: separator }, readStream,
     function(err, streamHead, restStream) {
       if(err) throw err
 
@@ -26,7 +26,78 @@ var assertBuffersSeparatedCorrectly = function(buffers, separator, callback) {
     })
 }
 
-describe('stream head extractor test', function() {
+describe('fixed head extractor test', function() {
+  it('trivial fixed head', function(callback) {
+    var testBuffers = [
+      '1234',
+      'hello ',
+      'world'
+    ]
+
+    var readStream = streamConvert.buffersToStream(testBuffers)
+    headExtractor.extractFixedSizeHead(4, readStream, function(err, head, readStream) {
+      if(err) throw err
+
+      head.toString().should.equal('1234')
+      streamConvert.streamToText(readStream, function(err, text) {
+        if(err) throw err
+
+        text.should.equal('hello world')
+        callback()
+      })
+    })
+  })
+
+  it('multiple fixed head', function(callback) {
+    var testBuffers = [
+      '12',
+      '3',
+      '4hello ',
+      'world'
+    ]
+
+    var readStream = streamConvert.buffersToStream(testBuffers)
+    headExtractor.extractFixedSizeHead(4, readStream, function(err, head, readStream) {
+      if(err) throw err
+
+      head.toString().should.equal('1234')
+      streamConvert.streamToText(readStream, function(err, text) {
+        if(err) throw err
+
+        text.should.equal('hello world')
+        callback()
+      })
+    })
+  })
+
+  it('unicode fixed head', function(callback) {
+    var testHead = '世界你好'
+    var testHeadBuffer = new Buffer(testHead)
+
+    var testBuffers = [
+      testHeadBuffer.slice(0, 5),
+      testHeadBuffer.slice(5, 10),
+      Buffer.concat([testHeadBuffer.slice(10, 12), new Buffer('hell')]),
+      'o world'
+    ]
+
+
+    var readStream = streamConvert.buffersToStream(testBuffers)
+    headExtractor.extractFixedSizeHead(12, readStream, function(err, head, readStream) {
+      if(err) throw err
+
+      head.toString().should.equal(testHead)
+      streamConvert.streamToText(readStream, function(err, text) {
+        if(err) throw err
+
+        text.should.equal('hello world')
+        callback()
+      })
+    })
+  })
+})
+
+describe('stream head separator extractor test', function() {
   it('ideal separated buffers', function(callback) {
     var testBuffers = [
       'hello ',
@@ -81,7 +152,7 @@ describe('stream head extractor test', function() {
 
     var readStream = streamConvert.buffersToStream(testBuffers)
 
-    extractAsciiStreamHead({ separator: '::' }, readStream,
+    headExtractor.extractStreamHeadWithSeparator({ separator: '::' }, readStream,
       function(err, streamHead, restStream) {
         if(err) throw err
 
@@ -104,7 +175,7 @@ describe('stream head extractor test', function() {
 
     var readStream = streamConvert.buffersToStream(testBuffers)
 
-    extractAsciiStreamHead({ separator: '::' }, readStream,
+    headExtractor.extractStreamHeadWithSeparator({ separator: '::' }, readStream,
       function(err, streamHead, restStream) {
         if(err) throw err
 
